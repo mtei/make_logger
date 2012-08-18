@@ -14,9 +14,18 @@ Build and Install
 Usage
 -----
 
+### simple example
+
     $ export MAKE_LOGGER_LOG=`pwd`/logfile.txtq
     $ make_logger <make command arguments>...
     $ cat logfile.txt
+
+### realtime watching example
+
+    $ export MAKE_LOGGER_LOG=`pwd`/logfile.txtq
+    $ touch $MAKE_LOGGER_LOG
+    $ xterm -e tail -f $MAKE_LOGGER_LOG &
+    $ make_logger <make command arguments>...
 
 Copyright
 ---------
