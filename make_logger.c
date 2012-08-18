@@ -1,21 +1,21 @@
 /*
- * make_wrap
+ * make_logger - make command logger for recursive make
  *
- *  make command logging warpper for recursive make
- *
+ * Copyright (c) 2012 ISHII Takeshi
+ * Distributed under the MIT/X11 software license, see the accompanying
+ * file license.txt or http://www.opensource.org/licenses/mit-license.php.
+ */
+/*
  * usage:
- *     $ export MAKE_WRAP_LOG=`pwd`/logfile.txt
- *     $ make_wrap <make command arguments>...
+ *     $ export MAKE_LOGGER_LOG=`pwd`/logfile.txt
+ *     $ make_logger <make command arguments>...
  *     $ cat logfile.txt
  *
  *  environment variable
- *     MAKE_WRAP_LOG  -- log file name
- *     MAKE_WRAP      -- make command name
- *
- *      Date      Design                     Log
- *  ------------  -------------------------  --------------------
- *   2012-08-11   isii@Harmony Systems       created
+ *     MAKE_LOGGER_LOG  -- log file name (full path)
+ *     MAKE_LOGGER      -- make command name (default 'make')
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,7 +31,7 @@ void print_args(struct timeval *stimev, struct timeval *etimev,
 		pid_t ppid, pid_t pid, int exitcode,int mlevel, const char *cwd,
 		int argc, char *argv[]);
 
-char cwdbuf[1024];
+char cwdbuf[FILENAME_MAX];
 
 int main(int argc, char *argv[])
 {
@@ -42,13 +42,13 @@ int main(int argc, char *argv[])
     const char *cmd;
     const char *cwd;
 
-    if( getenv("MAKE_WRAP_LEVEL") != NULL ) {
-	mlevel = atoi(getenv("MAKE_WRAP_LEVEL"));
+    if( getenv("MAKE_LOGGER_LEVEL") != NULL ) {
+	mlevel = atoi(getenv("MAKE_LOGGER_LEVEL"));
     } else
 	mlevel = 0;
     sprintf(cwdbuf, "%d", mlevel+1);
-    setenv("MAKE_WRAP_LEVEL", cwdbuf, 1);
-    cmd = getenv("MAKE_WRAP");
+    setenv("MAKE_LOGGER_LEVEL", cwdbuf, 1);
+    cmd = getenv("MAKE_LOGGER");
     if( cmd == NULL )
 	cmd = "make";
     ppid = getppid();
@@ -66,14 +66,14 @@ int main(int argc, char *argv[])
     gettimeofday(&etimev,NULL);
     if( wp < 0 ) { perror(argv[0]); exit(1); }
     if( subp != wp ) {
-	fprintf(stderr, "make_wrap %s: pid %d %d unmatch\n", argv[0], subp, wp);
+	fprintf(stderr, "make_logger %s: pid %d %d unmatch\n", argv[0], subp, wp);
 	exit(1);
     }
     if( WIFEXITED(r) ) {
 	print_args(&stimev, &etimev, ppid, subp, WEXITSTATUS(r), mlevel, cwd, argc, argv);
 	exit(WEXITSTATUS(r));
     } else if (WIFSIGNALED(r)) {
-	fprintf(stderr, "make_wrap %s signal %d\n", argv[0], WTERMSIG(r));
+	fprintf(stderr, "make_logger %s signal %d\n", argv[0], WTERMSIG(r));
     }
     exit(1);
 }
@@ -94,7 +94,7 @@ void print_args(struct timeval *stimev, struct timeval *etimev,
     struct timeval dtimev;
     
     fp = stdout;
-    logfile = getenv("MAKE_WRAP_LOG");
+    logfile = getenv("MAKE_LOGGER_LOG");
     if( logfile != NULL ) {
 	fp = fopen(logfile, "a");
 	if( fp == NULL )
