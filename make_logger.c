@@ -7,9 +7,16 @@
  */
 /*
  * usage:
+ *    Example 1
  *     $ export MAKE_LOGGER_LOG=`pwd`/logfile.txt
  *     $ make_logger <make command arguments>...
  *     $ cat logfile.txt
+ *
+ *    Example 2 (realtime watching)
+ *     $ export MAKE_LOGGER_LOG=`pwd`/logfile.txt
+ *     $ touch $MAKE_LOGGER_LOG
+ *     $ xterm -e tail -f $MAKE_LOGGER_LOG &
+ *     $ make_logger <make command arguments>...
  *
  *  environment variable
  *     MAKE_LOGGER_LOG  -- log file name (full path)
