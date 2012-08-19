@@ -4,6 +4,8 @@
  * Copyright (c) 2012 ISHII Takeshi
  * Distributed under the MIT/X11 software license, see the accompanying
  * file license.txt or http://www.opensource.org/licenses/mit-license.php.
+ *
+ * repository URL = https://github.com/mtei/make_logger.git
  */
 /*
  * usage:
@@ -107,7 +109,7 @@ void print_args(struct timeval *stimev, struct timeval *etimev,
 	if( fp == NULL )
 	    fp = stdout;
     }
-    rlc = gmtime(&(etimev->tv_sec));
+    rlc = localtime(&(etimev->tv_sec));
     fprintf(fp, "%3d,%3d: %02d:%02d:%02d.%03d ", ppid, pid,
 	    rlc->tm_hour, rlc->tm_min, rlc->tm_sec,
 	    etimev->tv_usec/1000);
