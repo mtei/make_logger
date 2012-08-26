@@ -36,11 +36,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+const char *get_path_substr(const char *path);
+
 void print_args(struct timeval *stimev, struct timeval *etimev,
 		pid_t ppid, pid_t pid, int exitcode,int mlevel, const char *cwd,
 		int argc, char *argv[]);
 
-char cwdbuf[FILENAME_MAX];
+char filenamestr[FILENAME_MAX+1];
 
 int main(int argc, char *argv[])
 {
@@ -50,20 +52,28 @@ int main(int argc, char *argv[])
     pid_t thisp, subp, ppid, wp;
     const char *cmd;
     const char *cwd;
+    const char *logfile;
 
     if( getenv("MAKE_LOGGER_LEVEL") != NULL ) {
 	mlevel = atoi(getenv("MAKE_LOGGER_LEVEL"));
-    } else
+    } else {
 	mlevel = 0;
-    sprintf(cwdbuf, "%d", mlevel+1);
-    setenv("MAKE_LOGGER_LEVEL", cwdbuf, 1);
+	logfile = getenv("MAKE_LOGGER_LOG");
+	if( logfile != NULL && logfile[0] != '/' ) {
+	    getcwd(filenamestr, sizeof(filenamestr));
+	    strcat(filenamestr, "/");  strcat(filenamestr, logfile);
+	    setenv("MAKE_LOGGER_LOG", filenamestr, 1);
+	}
+    }
+    sprintf(filenamestr, "%d", mlevel+1);
+    setenv("MAKE_LOGGER_LEVEL", filenamestr, 1);
     cmd = getenv("MAKE_LOGGER");
     if( cmd == NULL )
 	cmd = "make";
     ppid = getppid();
     thisp = getpid();
-    getcwd(cwdbuf, sizeof(cwdbuf));
-    cwd = strrchr(cwdbuf, '/')+1;
+    getcwd(filenamestr, sizeof(filenamestr));
+    cwd = get_path_substr(filenamestr);
     gettimeofday(&stimev,NULL);
 
     subp = fork();
@@ -85,6 +95,19 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "make_logger %s signal %d\n", argv[0], WTERMSIG(r));
     }
     exit(1);
+}
+
+const char *get_path_substr(const char *path)
+{
+    const char *result;
+    result = path + strlen(path) - 1;
+    while( result > path && *result != '/' )
+	result --;
+    if( result > path ) result --;
+    while( result >= path && *result != '/' )
+	result --;
+    if( result > path && *result == '/' ) result ++;
+    return result;
 }
 
 /*
