@@ -64,6 +64,9 @@ int main(int argc, char *argv[])
 	    strcat(filenamestr, "/");  strcat(filenamestr, logfile);
 	    setenv("MAKE_LOGGER_LOG", filenamestr, 1);
 	}
+#ifdef macOS
+        setenv("MAKE", argv[0],0);
+#endif
     }
     sprintf(filenamestr, "%d", mlevel+1);
     setenv("MAKE_LOGGER_LEVEL", filenamestr, 1);
